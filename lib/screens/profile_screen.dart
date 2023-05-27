@@ -17,7 +17,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _adminProfileFuture = getAdminProfile('1');
+    _adminProfileFuture = getAdminProfile('6');
+    print(widget.id);
   }
 
   Future<Map<String, dynamic>> getAdminProfile(String id) async {
@@ -25,7 +26,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final responseBody = jsonDecode(response.body);
+      return responseBody;
     } else {
       print('Error: ${response.statusCode}');
       throw Exception('Failed to fetch admin profile');
@@ -43,7 +45,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: FutureBuilder<Map<String, dynamic>>(
         future: _adminProfileFuture,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          } else if (snapshot.hasData) {
             final adminProfile = snapshot.data!;
 
             return Container(
@@ -62,20 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           TableCell(
                             child: Text(
-                              adminProfile['name'],
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ),
-                        ],
-                      ),
-                      TableRow(
-                        children: [
-                          TableCell(
-                            child: const Text('ID'),
-                          ),
-                          TableCell(
-                            child: Text(
-                              adminProfile['user-id'].toString(),
+                              adminProfile['username'],
                               style: const TextStyle(fontSize: 16),
                             ),
                           ),
@@ -108,18 +105,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
             );
           }
 
           return const Center(
-            child: CircularProgressIndicator(),
+            child: Text('No data available'),
           );
         },
       ),

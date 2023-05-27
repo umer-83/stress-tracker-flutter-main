@@ -33,10 +33,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'company': _companyController.text,
         'phone': _phoneController.text,
       };
+      final requestBodyJson = json.encode(requestBody);
 
       final response = await http.post(
         Uri.parse('http://16.16.96.75:8000/admin/signup'),
-        body: requestBody,
+        body: requestBodyJson,
       );
 
       if (response.statusCode == 200) {
@@ -44,9 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         final id = responseData['id'];
         final token = responseData['token'];
 
-        // TODO: Perform necessary actions after successful registration
-
-        Navigator.pushReplacementNamed(context, Routes.HOME);
+        Navigator.pushReplacementNamed(context, Routes.MAIN);
       } else {
         final errorBody = response.body;
         final statusCode = response.statusCode;

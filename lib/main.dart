@@ -23,8 +23,8 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: routes.Routes.LOGIN,
         routes: {
-          routes.Routes.HOME: (ctx) => const MainScreen(password: 'password', username: 'username', id: 'id',),
-          routes.Routes.MAIN: (ctx) => const MainScreen(username: 'username', password: 'password', id: 'id',),
+          
+          routes.Routes.MAIN: (ctx) => const MainScreen(id: 'id',),
           routes.Routes.LOGIN: (ctx) => const LoginScreen(),
           routes.Routes.SIGNUP: (ctx) => const RegisterScreen(),
           routes.Routes.CALENDAR: (ctx) => const CalenderScreen(),

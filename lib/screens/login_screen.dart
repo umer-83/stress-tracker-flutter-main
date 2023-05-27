@@ -32,16 +32,15 @@ class _LoginScreenState extends State<LoginScreen> {
       // Login successful
       final responseData = json.decode(response.body);
       final token = responseData['token'];
-      final id = responseData['id'];
+      final id = responseData['id'].toString();
       print(id);
+      print(token);
 
       // Navigate to MainScreen and pass username, password, and id
       Navigator.pushReplacementNamed(
         context,
         Routes.MAIN,
         arguments: {
-          'username': username,
-          'password': password,
           'id': id,
         },
       );

@@ -13,8 +13,8 @@ class StressStatusScreen extends StatefulWidget {
 class _StressStatusScreenState extends State<StressStatusScreen> {
   List<dynamic> stressList = [];
 
-  Future<void> fetchStressList() async {
-    final url = '${Routes.BASE_URL}${Routes.STRESS_LIST}';
+  Future<void> fetchStressList(int userId) async {
+    final url = '${Routes.BASE_URL}${Routes.STRESS_LIST}?_id=$userId';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
@@ -42,7 +42,8 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
   @override
   void initState() {
     super.initState();
-    fetchStressList();
+    // Replace 123 with the actual user ID variable
+    fetchStressList(1);
   }
 
   @override
@@ -145,11 +146,54 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
                 itemCount: stressList.length,
                 itemBuilder: (ctx, index) {
                   final stressItem = stressList[index];
-                  return ListTile(
-                    title: Text(stressItem['name']),
-                    subtitle:
-                        Text('Stress Level: ${stressItem['stress-status']}'),
-                    trailing: Text('Datetime: ${stressItem['datetime']}'),
+                  final stressLevel = stressItem['stress-status'];
+                  final stressColor = stressLevel ? Colors.red : Colors.green;
+                  final stressCircle = Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: stressColor,
+                    ),
+                  );
+
+                  return Card(
+                    elevation: 2,
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: ListTile(
+                      title: Text(
+                        stressItem['name'],
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              stressCircle,
+                              const SizedBox(width: 8),
+                              Text(
+                                stressLevel
+                                    ? 'High Stress Level'
+                                    : 'Low Stress Level',
+                                style: TextStyle(
+                                    fontSize: 14, color: Colors.grey[700]),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Datetime: ${stressItem['datetime']}',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[700]),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),
