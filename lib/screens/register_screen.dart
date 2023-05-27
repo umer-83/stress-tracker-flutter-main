@@ -45,7 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         final id = responseData['id'];
         final token = responseData['token'];
 
-        Navigator.pushReplacementNamed(context, Routes.MAIN);
+        Navigator.pushReplacementNamed(context, Routes.LOGIN);
       } else {
         final errorBody = response.body;
         final statusCode = response.statusCode;
