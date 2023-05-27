@@ -6,9 +6,14 @@ import 'package:testproject/screens/main_screen.dart';
 import 'package:testproject/screens/notifications_screen.dart';
 import 'package:testproject/screens/profile_screen.dart';
 import 'package:testproject/screens/register_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:testproject/user_id_provider.dart' as provider;
 
 void main() {
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider<provider.UserIdProvider>(
+    create: (context) => provider.UserIdProvider(),
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -23,14 +28,12 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: routes.Routes.LOGIN,
         routes: {
-          
-          routes.Routes.MAIN: (ctx) => const MainScreen(id: 'id',),
+          routes.Routes.MAIN: (ctx) => const MainScreen(),
           routes.Routes.LOGIN: (ctx) => const LoginScreen(),
           routes.Routes.SIGNUP: (ctx) => const RegisterScreen(),
           routes.Routes.CALENDAR: (ctx) => const CalenderScreen(),
           routes.Routes.NOTIFICATIONS: (ctx) => const NotificationsScreen(),
-          routes.Routes.PROFILE: (ctx) => const ProfileScreen(id: 'id'),
-         
+          routes.Routes.PROFILE: (ctx) => ProfileScreen(),
         });
   }
 }

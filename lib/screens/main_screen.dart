@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:testproject/screens/profile_screen.dart';
 import 'package:testproject/screens/stress_status.dart';
 import 'package:testproject/screens/add_user_screen.dart';
+import 'package:testproject/screens/login_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  final String id;
-
   const MainScreen({
     Key? key,
-    required this.id,
   }) : super(key: key);
 
   @override
@@ -17,7 +15,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int activeIndex = 0;
-  
 
   Widget getActivePage() {
     switch (activeIndex) {
@@ -26,7 +23,9 @@ class _MainScreenState extends State<MainScreen> {
       case 1:
         return const AddUserScreen();
       case 2:
-        return ProfileScreen(id: widget.id);
+        return ProfileScreen();
+      case 3:
+        return LoginScreen();
       default:
         return const StressStatusScreen();
     }
@@ -38,6 +37,8 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: Colors.blueGrey.shade100,
       body: getActivePage(),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor:
+            Colors.blueGrey, // Set the background color of the navigation bar
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -50,18 +51,23 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profile',
-
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.logout),
+            label: 'Logout',
           ),
         ],
         currentIndex: activeIndex,
-        selectedItemColor: Colors.blueGrey,
+        selectedItemColor: Colors
+            .blueGrey, // Set the color of the selected item's icon and label
+        unselectedItemColor: Colors
+            .blueGrey, // Set the color of the unselected items' icons and labels
         onTap: (int index) {
           setState(() {
             activeIndex = index;
           });
         },
       ),
-      
     );
   }
 }
