@@ -1,21 +1,62 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:testproject/user_id_provider.dart';
 
-// Create a Form widget.
 class AddUserScreen extends StatefulWidget {
-  const AddUserScreen({super.key});
+  const AddUserScreen({Key? key}) : super(key: key);
 
   @override
-  AddUserScreenState createState() {
-    return AddUserScreenState();
-  }
+  _AddUserScreenState createState() => _AddUserScreenState();
 }
 
-class AddUserScreenState extends State<AddUserScreen> {
+class _AddUserScreenState extends State<AddUserScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _baseUrl = 'http://16.16.96.75:8000';
+
+  TextEditingController _nameController = TextEditingController();
+
+  Future<void> _createUser(int adminId) async {
+    if (_formKey.currentState!.validate()) {
+      final url = Uri.parse('$_baseUrl/employee/signup');
+      final responseB = {
+        'name': _nameController.text,
+        'admin_id': adminId,
+      };
+      final responseBo = json.encode(responseB);
+
+      final response = await http.post(
+        url,
+        body: responseBo,
+      );
+
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Stress entry added successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to add stress entry')),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Build a Form widget using the _formKey created above.
+    final userIdProvider = Provider.of<UserIdProvider>(context, listen: false);
+    final adminId = int.parse(userIdProvider.userId!);
+
     return Scaffold(
       backgroundColor: Colors.grey.shade300,
       appBar: AppBar(
@@ -24,10 +65,12 @@ class AddUserScreenState extends State<AddUserScreen> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Container(
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20), color: Colors.white),
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white,
+            ),
             child: Column(
               children: [
                 Form(
@@ -38,6 +81,7 @@ class AddUserScreenState extends State<AddUserScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TextFormField(
+                          controller: _nameController,
                           decoration: const InputDecoration(
                             contentPadding: EdgeInsets.all(10),
                             border: OutlineInputBorder(),
@@ -52,40 +96,13 @@ class AddUserScreenState extends State<AddUserScreen> {
                             return null;
                           },
                         ),
-                        const SizedBox(
-                          height: 20.0,
-                        ),
-                        TextFormField(
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.all(10),
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.credit_card),
-                            hintText: 'ID',
-                            labelText: 'ID',
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'ID is required!';
-                            }
-                            return null;
-                          },
-                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(40), // NEW
+                              minimumSize: const Size.fromHeight(40),
                             ),
-                            onPressed: () {
-                              // Validate returns true if the form is valid, or false otherwise.
-                              if (_formKey.currentState!.validate()) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Processing Data')),
-                                );
-                              }
-                            },
+                            onPressed: () => _createUser(adminId),
                             child: const Text('Create'),
                           ),
                         ),

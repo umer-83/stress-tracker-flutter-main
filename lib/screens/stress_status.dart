@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:testproject/routes.dart';
+import 'package:provider/provider.dart';
+import 'package:testproject/user_id_provider.dart';
 
 class StressStatusScreen extends StatefulWidget {
   const StressStatusScreen({Key? key}) : super(key: key);
@@ -42,8 +44,9 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
   @override
   void initState() {
     super.initState();
-    // Replace 123 with the actual user ID variable
-    fetchStressList(1);
+    final userIdProvider = Provider.of<UserIdProvider>(context, listen: false);
+    final userId = int.parse(userIdProvider.userId!); // Convert to int
+    fetchStressList(userId);
   }
 
   @override
@@ -75,67 +78,6 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: const [
-                        Text(
-                          'Name',
-                          style: TextStyle(fontSize: 12, color: Colors.blue),
-                        ),
-                        SizedBox(
-                          height: 12,
-                        ),
-                        Text(
-                          'Ali Ahmed',
-                          style: TextStyle(fontSize: 20),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Stress Status',
-                          style: TextStyle(fontSize: 12, color: Colors.blue),
-                        ),
-                        IconButton(
-                          onPressed: () {},
-                          icon: SizedBox(
-                            height: 30,
-                            child: Image.asset(
-                              "static/images/stressed_icon.png",
-                              scale: 0.2,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'History',
-                          style: TextStyle(fontSize: 12, color: Colors.blue),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.history),
-                          onPressed: () {
-                            Navigator.pushNamed(context, Routes.CALENDAR);
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
             Text(
               'Stress List',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -149,49 +91,64 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
                   final stressLevel = stressItem['stress-status'];
                   final stressColor = stressLevel ? Colors.red : Colors.green;
                   final stressCircle = Container(
-                    width: 12,
-                    height: 12,
+                    width: 14,
+                    height: 14,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: stressColor,
                     ),
                   );
 
-                  return Card(
-                    elevation: 2,
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    child: ListTile(
-                      title: Text(
-                        stressItem['name'],
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              stressCircle,
-                              const SizedBox(width: 8),
-                              Text(
-                                stressLevel
-                                    ? 'High Stress Level'
-                                    : 'Low Stress Level',
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.grey[700]),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Datetime: ${stressItem['datetime']}',
-                            style: TextStyle(
-                                fontSize: 14, color: Colors.grey[700]),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        Routes.CALENDAR,
+                        arguments: stressItem['employee-id'],
+                      );
+                    },
+                    child: Card(
+                      elevation: 2,
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
+                      child: ListTile(
+                        title: Text(
+                          stressItem['name'],
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                stressCircle,
+                                const SizedBox(width: 8),
+                                Text(
+                                  stressLevel
+                                      ? 'High Stress Level'
+                                      : 'Low Stress Level',
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.grey[700]),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Datetime: ${stressItem['datetime']}',
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.grey[700]),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Employee ID: ${stressItem['employee-id']}',
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.grey[700]),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        ),
                       ),
                     ),
                   );

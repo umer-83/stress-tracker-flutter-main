@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_calendar_carousel/flutter_calendar_carousel.dart'
-    show CalendarCarousel;
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:testproject/routes.dart';
 
 class CalenderScreen extends StatefulWidget {
-  const CalenderScreen({Key? key}) : super(key: key);
+  final int employeeId;
+
+  const CalenderScreen({Key? key, required this.employeeId}) : super(key: key);
 
   @override
   State<CalenderScreen> createState() => _CalenderScreenState();
@@ -29,6 +31,42 @@ class _CalenderScreenState extends State<CalenderScreen> {
     'December'
   ];
 
+  List<dynamic> stressHistory = [];
+
+  Future<void> fetchStressHistory() async {
+    final url =
+        '${Routes.BASE_URL}${Routes.STRESS_HISTORY}?_id=${widget.employeeId}&start_datetime=2022-01-01&end_datetime=2022-12-31';
+    final response = await http.get(Uri.parse(url));
+    
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      setState(() {
+        stressHistory = responseData['stress_list'];
+      });
+    } else {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text('Failed to fetch stress history'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchStressHistory();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,11 +82,11 @@ class _CalenderScreenState extends State<CalenderScreen> {
             SizedBox(
               width: 150,
               child: Table(
-                children: const [
+                children: [
                   TableRow(
                     children: [
                       TableCell(
-                        child: Text("Name"),
+                        child: Text(widget.employeeId.toString()),
                       ),
                       TableCell(
                         child: Text("Ahmed"),
@@ -61,7 +99,7 @@ class _CalenderScreenState extends State<CalenderScreen> {
                         child: Text("ID"),
                       ),
                       TableCell(
-                        child: Text("29384"),
+                        child: Text(widget.employeeId.toString()),
                       ),
                     ],
                   ),
@@ -78,56 +116,11 @@ class _CalenderScreenState extends State<CalenderScreen> {
                 Text(_dateShowing.year.toString())
               ],
             ),
-            CalendarCarousel(
-              onDayPressed: (DateTime date, List events) {
-                setState(() => _currentDate = date);
-                Navigator.pushNamed(context, Routes.STRESS_STATUS);
-              },
-              weekendTextStyle: const TextStyle(
-                color: Colors.red,
-              ),
-              thisMonthDayBorderColor: Colors.grey,
-              customDayBuilder: (
-                /// you can provide your own build function to make custom day containers
-                bool isSelectable,
-                int index,
-                bool isSelectedDay,
-                bool isToday,
-                bool isPrevMonthDay,
-                TextStyle textStyle,
-                bool isNextMonthDay,
-                bool isThisMonthDay,
-                DateTime day,
-              ) {
-                // Example: every 15th of month, we have a flight, we can place an icon in the container like that:
-                // if (day.day == 15) {
-                //   return const Center(
-                //     child: Icon(Icons.local_airport),
-                //   );
-                // }
-                const redDays = [5, 6, 7, 8];
-                if (redDays.contains(day.day)) {
-                  return Container(
-                    color: Colors.red,
-                    child: Center(
-                      child: Text(
-                        day.day.toString(),
-                      ),
-                    ),
-                  );
-                }
+            // CalendarCarousel widget code
+            // ...
 
-                return null;
-              },
-              weekFormat: false,
-              showHeader: false,
-              // markedDatesMap: _markedDateMap,
-              height: 420.0,
-              selectedDateTime: _dateShowing,
-              daysHaveCircularBorder: false,
-            ),
             Table(
-              children: const [
+              children: [
                 TableRow(
                   children: [
                     TableCell(
@@ -149,6 +142,75 @@ class _CalenderScreenState extends State<CalenderScreen> {
                   ],
                 ),
               ],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Stress History',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemCount: stressHistory.length,
+                itemBuilder: (ctx, index) {
+                  final stressItem = stressHistory[index];
+                  final stressLevel = stressItem['stress-status'];
+                  final stressColor = stressLevel ? Colors.red : Colors.green;
+                  final stressCircle = Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: stressColor,
+                    ),
+                  );
+
+                  return Card(
+                    elevation: 2,
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: ListTile(
+                      title: Text(
+                        stressItem['name'],
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              stressCircle,
+                              const SizedBox(width: 8),
+                              Text(
+                                stressLevel
+                                    ? 'High Stress Level'
+                                    : 'Low Stress Level',
+                                style: TextStyle(
+                                    fontSize: 14, color: Colors.grey[700]),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Datetime: ${stressItem['datetime']}',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[700]),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Employee ID: ${stressItem['employee-id']}',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[700]),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

@@ -1,41 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class ProfileScreen extends StatefulWidget {
-  final String id;
+import '../user_id_provider.dart';
 
-  const ProfileScreen({Key? key, required this.id}) : super(key: key);
 
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  late Future<Map<String, dynamic>> _adminProfileFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _adminProfileFuture = getAdminProfile('6');
-    print(widget.id);
-  }
-
-  Future<Map<String, dynamic>> getAdminProfile(String id) async {
-    final url = Uri.parse('http://16.16.96.75:8000/admin/profile?_id=$id');
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final responseBody = jsonDecode(response.body);
-      return responseBody;
-    } else {
-      print('Error: ${response.statusCode}');
-      throw Exception('Failed to fetch admin profile');
-    }
-  }
-
+class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final userIdProvider = Provider.of<UserIdProvider>(context);
+    final userId = userIdProvider.userId;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade300,
       appBar: AppBar(
@@ -43,7 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         automaticallyImplyLeading: false,
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: _adminProfileFuture,
+        future: getAdminProfile(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -117,5 +93,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         },
       ),
     );
+  }
+
+  Future<Map<String, dynamic>> getAdminProfile(String? id) async {
+    final url = Uri.parse('http://16.16.96.75:8000/admin/profile?_id=$id');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final responseBody = jsonDecode(response.body);
+      return responseBody;
+    } else {
+      print('Error: ${response.statusCode}');
+      throw Exception('Failed to fetch admin profile');
+    }
   }
 }

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'dart:convert';
-import 'package:testproject/routes.dart';
-import 'package:testproject/screens/profile_screen.dart';
+
+import '../routes.dart';
+import '../user_id_provider.dart';
+
+import 'profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -36,13 +40,17 @@ class _LoginScreenState extends State<LoginScreen> {
       print(id);
       print(token);
 
-      // Navigate to MainScreen and pass username, password, and id
+      // Obtain the UserIdProvider instance
+      final userIdProvider =
+          Provider.of<UserIdProvider>(context, listen: false);
+
+      // Set the user ID in the provider
+      userIdProvider.setUserId(id);
+
+      // Navigate to ProfileScreen
       Navigator.pushReplacementNamed(
         context,
         Routes.MAIN,
-        arguments: {
-          'id': id,
-        },
       );
     } else {
       // Login failed
@@ -150,19 +158,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             TextButton(
-                                onPressed: () {},
-                                child: const Text(
-                                  "Forgot Password",
-                                  style: TextStyle(color: Colors.grey),
-                                )),
+                              onPressed: () {},
+                              child: const Text(
+                                "Forgot Password",
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ),
                             TextButton(
-                                onPressed: () {
-                                  Navigator.pushReplacementNamed(
-                                      context, Routes.SIGNUP);
-                                },
-                                child: const Text("Sign Up")),
+                              onPressed: () {
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  Routes.SIGNUP,
+                                );
+                              },
+                              child: const Text("Sign Up"),
+                            ),
                           ],
-                        )
+                        ),
                       ],
                     ),
                   ),
