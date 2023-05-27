@@ -1,6 +1,6 @@
 class Routes {
   static const BASE_URL = 'http://16.16.96.75:8000';
-  static const HOME = "/";
+  
   static const LOGIN = "/login";
   static const SIGNUP = "/signup";
   static const STRESS_STATUS = "/stress-status";

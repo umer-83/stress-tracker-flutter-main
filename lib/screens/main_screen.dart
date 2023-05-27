@@ -1,23 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:testproject/routes.dart';
 import 'package:testproject/screens/profile_screen.dart';
 import 'package:testproject/screens/stress_status.dart';
-
-import 'add_user_screen.dart';
+import 'package:testproject/screens/add_user_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  final String username;
-  final String password;
   final String id;
 
-  const MainScreen(
-      {Key? key,
-      required this.username,
-      required this.password,
-      required this.id})
-      : super(key: key);
+  const MainScreen({
+    Key? key,
+    required this.id,
+  }) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -25,6 +17,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int activeIndex = 0;
+  
 
   Widget getActivePage() {
     switch (activeIndex) {
@@ -33,9 +26,7 @@ class _MainScreenState extends State<MainScreen> {
       case 1:
         return const AddUserScreen();
       case 2:
-        return ProfileScreen(
-          id: widget.id,
-        ); // Pass the id as a parameter
+        return ProfileScreen(id: widget.id);
       default:
         return const StressStatusScreen();
     }
@@ -59,19 +50,18 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Profile',
+
           ),
         ],
         currentIndex: activeIndex,
         selectedItemColor: Colors.blueGrey,
         onTap: (int index) {
-          activeIndex = index;
-          setState(() {});
+          setState(() {
+            activeIndex = index;
+          });
         },
       ),
+      
     );
   }
-}
-
-class Routes {
-  static const String HOME = '/home';
 }
