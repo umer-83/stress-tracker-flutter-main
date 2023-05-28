@@ -1,220 +1,256 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:testproject/routes.dart';
 
-class CalenderScreen extends StatefulWidget {
-  final int employeeId;
+import 'package:testproject/user_id_provider.dart';
 
-  const CalenderScreen({Key? key, required this.employeeId}) : super(key: key);
-
+class StressCalendarScreen extends StatefulWidget {
   @override
-  State<CalenderScreen> createState() => _CalenderScreenState();
+  _StressCalendarScreenState createState() => _StressCalendarScreenState();
 }
 
-class _CalenderScreenState extends State<CalenderScreen> {
-  DateTime _currentDate = DateTime.now();
-  DateTime _dateShowing = DateTime(2021, 8, 20);
+class _StressCalendarScreenState extends State<StressCalendarScreen> {
+  List<StressEntry> stressList = [];
+  late DateTime _firstDate;
+  late DateTime _lastDate;
+  late DateTime _selectedDate;
+  String _employeeId = '';
 
-  List<String> months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ];
+  final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
 
-  List<dynamic> stressHistory = [];
+  Future<void> fetchStressHistory(String userId) async {
+    final url = Uri.parse('http://16.16.96.75:8000/stress/history?_id=$userId');
+    final response = await http.get(url);
+    final responseData = json.decode(response.body);
 
-  Future<void> fetchStressHistory() async {
-    final url =
-        '${Routes.BASE_URL}${Routes.STRESS_HISTORY}?_id=${widget.employeeId}&start_datetime=2022-01-01&end_datetime=2022-12-31';
-    final response = await http.get(Uri.parse(url));
-    
-
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      setState(() {
-        stressHistory = responseData['stress_list'];
-      });
-    } else {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Error'),
-          content: const Text('Failed to fetch stress history'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('OK'),
-            ),
-          ],
+    setState(() {
+      stressList =
+          List<StressEntry>.from(responseData['stress_list']['List'].map(
+        (entry) => StressEntry(
+          dateTime: DateTime.parse(entry[0]),
+          isStressed: entry[1],
         ),
-      );
-    }
+      ));
+
+      if (stressList.isNotEmpty) {
+        _firstDate = stressList.first.dateTime!;
+        _lastDate = stressList.last.dateTime!;
+        _selectedDate = _firstDate;
+      } else {
+        // Set default values in case the stressList is empty
+        final now = DateTime.now();
+        _firstDate = now;
+        _lastDate = now;
+        _selectedDate = now;
+      }
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    fetchStressHistory();
+    final userIdProvider = Provider.of<UserIdProvider>(context, listen: false);
+    final userId = userIdProvider.userId;
+    if (userId != null) {
+      fetchStressHistory(userId);
+    }
+    // Set default values for _firstDate, _lastDate, and _selectedDate
+    final now = DateTime.now();
+    _firstDate = now;
+    _lastDate = now;
+    _selectedDate = now;
+
+    _employeeId = userIdProvider.userId ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendar'),
+        title: const Text('Stress Calendar'),
       ),
-      body: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 30.0),
-            SizedBox(
-              width: 150,
-              child: Table(
-                children: [
-                  TableRow(
-                    children: [
-                      TableCell(
-                        child: Text(widget.employeeId.toString()),
-                      ),
-                      TableCell(
-                        child: Text("Ahmed"),
-                      ),
-                    ],
-                  ),
-                  TableRow(
-                    children: [
-                      TableCell(
-                        child: Text("ID"),
-                      ),
-                      TableCell(
-                        child: Text(widget.employeeId.toString()),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            Row(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(months[_dateShowing.month - 1]),
-                Text(_dateShowing.year.toString())
-              ],
-            ),
-            // CalendarCarousel widget code
-            // ...
-
-            Table(
-              children: [
-                TableRow(
-                  children: [
-                    TableCell(
-                      child: Text("Number of stressed days"),
-                    ),
-                    TableCell(
-                      child: Text("15"),
-                    ),
-                  ],
+                IconButton(
+                  icon: Icon(Icons.arrow_back),
+                  onPressed: _goToPreviousWeek,
                 ),
-                TableRow(
-                  children: [
-                    TableCell(
-                      child: Text("Number of not stressed days"),
-                    ),
-                    TableCell(
-                      child: Text("7"),
-                    ),
-                  ],
+                Text(
+                  '${_dateFormat.format(_selectedDate.subtract(Duration(days: 6)))} - ${_dateFormat.format(_selectedDate)}',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.arrow_forward),
+                  onPressed: _goToNextWeek,
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            Text(
-              'Stress History',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: stressHistory.length,
-                itemBuilder: (ctx, index) {
-                  final stressItem = stressHistory[index];
-                  final stressLevel = stressItem['stress-status'];
-                  final stressColor = stressLevel ? Colors.red : Colors.green;
-                  final stressCircle = Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: stressColor,
-                    ),
-                  );
-
-                  return Card(
-                    elevation: 2,
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                    child: ListTile(
-                      title: Text(
-                        stressItem['name'],
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              stressCircle,
-                              const SizedBox(width: 8),
-                              Text(
-                                stressLevel
-                                    ? 'High Stress Level'
-                                    : 'Low Stress Level',
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.grey[700]),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Datetime: ${stressItem['datetime']}',
-                            style: TextStyle(
-                                fontSize: 14, color: Colors.grey[700]),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Employee ID: ${stressItem['employee-id']}',
-                            style: TextStyle(
-                                fontSize: 14, color: Colors.grey[700]),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+          ),
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(16.0),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 8,
+                crossAxisSpacing: 4.0,
+                mainAxisSpacing: 4.0,
               ),
+              itemCount: 64, // 8 columns x 8 rows
+              itemBuilder: (context, index) {
+                final dayIndex = index % 8;
+                final timeIndex = index ~/ 8;
+
+                if (index == 0) {
+                  // Empty cell at the top left corner
+                  return Container();
+                } else if (dayIndex == 0 && timeIndex == 0) {
+                  // Cell at (0, 0) position with no data
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      color: Colors.grey.shade200,
+                    ),
+                  );
+                } else if (dayIndex == 0) {
+                  // Time labels
+                  final timeLabelIndex = timeIndex - 1;
+                  final timeLabel = getTimeLabel(timeLabelIndex);
+
+                  return Container(
+                    alignment: Alignment.center,
+                    color: Colors.grey.shade200,
+                    child: Text(timeLabel),
+                  );
+                } else if (timeIndex == 0) {
+                  // Day labels
+                  final dayLabelIndex = dayIndex;
+                  final dayLabel = getDayLabel(dayLabelIndex);
+
+                  return Container(
+                    alignment: Alignment.center,
+                    color: Colors.grey.shade200,
+                    child: Text(dayLabel),
+                  );
+                } else {
+                  // Stress data cells
+                  final day = _selectedDate.subtract(Duration(days: 6)).day +
+                      dayIndex -
+                      1;
+                  final time = timeIndex - 1;
+
+                  final stressEntry = stressList.firstWhere(
+                    (entry) =>
+                        entry.dateTime?.day == day &&
+                        entry.dateTime!.hour >= time * 2 &&
+                        entry.dateTime!.hour < (time + 1) * 2,
+                    orElse: () =>
+                        StressEntry(dateTime: null, isStressed: false),
+                  );
+
+                  Color cellColor;
+                  if (stressEntry.dateTime != null) {
+                    cellColor =
+                        stressEntry.isStressed ? Colors.red : Colors.green;
+                  } else {
+                    cellColor = Colors.grey;
+                  }
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      color: cellColor,
+                    ),
+                  );
+                }
+              },
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Employee ID: $_employeeId',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
     );
   }
+
+  void _goToPreviousWeek() {
+    if (_selectedDate.isAtSameMomentAs(_firstDate)) return;
+
+    final newSelectedDate = _selectedDate.subtract(Duration(days: 7));
+
+    setState(() {
+      _selectedDate = newSelectedDate;
+    });
+  }
+
+  void _goToNextWeek() {
+    if (_selectedDate.isAtSameMomentAs(_lastDate)) return;
+
+    final newSelectedDate = _selectedDate.add(Duration(days: 7));
+
+    setState(() {
+      _selectedDate = newSelectedDate;
+    });
+  }
+
+  String getTimeLabel(int index) {
+    switch (index) {
+      case 0:
+        return '7am-9am';
+      case 1:
+        return '9am-11am';
+      case 2:
+        return '11am-1pm';
+      case 3:
+        return '1pm-3pm';
+      case 4:
+        return '3pm-5pm';
+      case 5:
+        return '5pm-7pm';
+      case 6:
+        return '7pm-9pm';
+      default:
+        return '';
+    }
+  }
+
+  String getDayLabel(int index) {
+    switch (index) {
+      case 1:
+        return 'Mon';
+      case 2:
+        return 'Tue';
+      case 3:
+        return 'Wed';
+      case 4:
+        return 'Thu';
+      case 5:
+        return 'Fri';
+      case 6:
+        return 'Sat';
+      case 7:
+        return 'Sun';
+      default:
+        return '';
+    }
+  }
+}
+
+class StressEntry {
+  final DateTime? dateTime;
+  final bool isStressed;
+
+  StressEntry({this.dateTime, required this.isStressed});
 }
