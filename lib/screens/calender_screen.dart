@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -40,7 +39,6 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
         _lastDate = stressList.last.dateTime!;
         _selectedDate = _firstDate;
       } else {
-        // Set default values in case the stressList is empty
         final now = DateTime.now();
         _firstDate = now;
         _lastDate = now;
@@ -53,7 +51,7 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
   void initState() {
     super.initState();
     final userIdProvider = Provider.of<UserIdProvider>(context, listen: false);
-    final userId = userIdProvider.userId;
+    final userId = userIdProvider.employeeId;
     if (userId != null) {
       fetchStressHistory(userId);
     }
@@ -63,7 +61,7 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
     _lastDate = now;
     _selectedDate = now;
 
-    _employeeId = userIdProvider.userId ?? '';
+    _employeeId = userIdProvider.employeeId ?? '';
   }
 
   @override

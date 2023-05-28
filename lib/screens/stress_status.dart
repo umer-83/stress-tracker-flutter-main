@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:testproject/routes.dart';
 import 'package:provider/provider.dart';
 import 'package:testproject/user_id_provider.dart';
@@ -16,30 +16,37 @@ class StressStatusScreen extends StatefulWidget {
 
 class _StressStatusScreenState extends State<StressStatusScreen> {
   List<dynamic> stressList = [];
+  late CancelToken cancelToken;
 
   Future<void> fetchStressList(int userId) async {
     final url = '${Routes.BASE_URL}${Routes.STRESS_LIST}?_id=$userId';
-    final response = await http.get(Uri.parse(url));
 
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      setState(() {
-        stressList = responseData['stress_list'];
-      });
-    } else {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Error'),
-          content: const Text('Failed to fetch stress list'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+    try {
+      final response = await Dio().get(url, cancelToken: cancelToken);
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        if (mounted) {
+          setState(() {
+            stressList = responseData['stress_list'];
+          });
+        }
+      } else {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Error'),
+            content: const Text('Failed to fetch stress list'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error fetching stress list: $e');
     }
   }
 
@@ -48,7 +55,15 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
     super.initState();
     final userIdProvider = Provider.of<UserIdProvider>(context, listen: false);
     final userId = int.parse(userIdProvider.userId!); // Convert to int
+    cancelToken = CancelToken();
     fetchStressList(userId);
+  }
+
+  @override
+  void dispose() {
+    // Cancel the ongoing network request
+    cancelToken.cancel();
+    super.dispose();
   }
 
   @override
@@ -103,6 +118,10 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
 
                   return GestureDetector(
                     onTap: () {
+                      final employeeId = stressItem['employee-id'].toString();
+                      final userIdProvider =
+                          Provider.of<UserIdProvider>(context, listen: false);
+                      userIdProvider.setEmployeeId(employeeId);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -112,12 +131,16 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
                     child: Card(
                       elevation: 2,
                       margin: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 16),
+                        vertical: 8,
+                        horizontal: 16,
+                      ),
                       child: ListTile(
                         title: Text(
                           stressItem['name'],
                           style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +155,9 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
                                       ? 'High Stress Level'
                                       : 'Low Stress Level',
                                   style: TextStyle(
-                                      fontSize: 14, color: Colors.grey[700]),
+                                    fontSize: 14,
+                                    color: Colors.grey[700],
+                                  ),
                                 ),
                               ],
                             ),
@@ -140,13 +165,17 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
                             Text(
                               'Datetime: ${stressItem['datetime']}',
                               style: TextStyle(
-                                  fontSize: 14, color: Colors.grey[700]),
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Employee ID: ${stressItem['employee-id']}',
                               style: TextStyle(
-                                  fontSize: 14, color: Colors.grey[700]),
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
                             ),
                             const SizedBox(height: 8),
                           ],
