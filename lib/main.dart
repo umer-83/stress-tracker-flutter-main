@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:testproject/routes.dart' as routes;
-import 'package:testproject/screens/daily_timeline_screen.dart';
 import 'package:testproject/screens/login_screen.dart';
 import 'package:testproject/screens/main_screen.dart';
 import 'package:testproject/screens/notifications_screen.dart';
@@ -31,7 +30,6 @@ class MyApp extends StatelessWidget {
           routes.Routes.MAIN: (ctx) => const MainScreen(),
           routes.Routes.LOGIN: (ctx) => const LoginScreen(),
           routes.Routes.SIGNUP: (ctx) => const RegisterScreen(),
-          routes.Routes.CALENDAR: (ctx) => const CalenderScreen(),
           routes.Routes.NOTIFICATIONS: (ctx) => const NotificationsScreen(),
           routes.Routes.PROFILE: (ctx) => ProfileScreen(),
         });

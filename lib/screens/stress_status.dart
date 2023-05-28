@@ -5,6 +5,8 @@ import 'package:testproject/routes.dart';
 import 'package:provider/provider.dart';
 import 'package:testproject/user_id_provider.dart';
 
+import 'calender_screen.dart';
+
 class StressStatusScreen extends StatefulWidget {
   const StressStatusScreen({Key? key}) : super(key: key);
 
@@ -101,10 +103,10 @@ class _StressStatusScreenState extends State<StressStatusScreen> {
 
                   return GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(
+                      Navigator.push(
                         context,
-                        Routes.CALENDAR,
-                        arguments: stressItem['employee-id'],
+                        MaterialPageRoute(
+                            builder: (context) => StressCalendarScreen()),
                       );
                     },
                     child: Card(
