@@ -232,7 +232,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             TextButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.pushReplacementNamed(
+                                    context, Routes.LOGIN);
+                              },
                               child: const Text(
                                 "Already have an account?",
                                 style: TextStyle(color: Colors.grey),
