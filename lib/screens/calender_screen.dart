@@ -82,7 +82,7 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
                   onPressed: _goToPreviousWeek,
                 ),
                 Text(
-                  '${_dateFormat.format(_selectedDate.subtract(Duration(days: 6)))} - ${_dateFormat.format(_selectedDate)}',
+                  '${_dateFormat.format(_selectedDate)} - ${_dateFormat.format(_selectedDate.add(Duration(days: 6)))}',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -141,25 +141,25 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
                   );
                 } else {
                   // Stress data cells
-                  final day = _selectedDate.subtract(Duration(days: 6)).day +
-                      dayIndex -
-                      1;
+                  final day = _selectedDate.day + dayIndex - 1;
                   final time = timeIndex - 1;
 
                   Color cellColor = Colors.grey;
-                  bool foundMatch = false;
 
                   for (final entry in stressList) {
-                    if (entry.dateTime?.day == day &&
-                        entry.dateTime!.hour % 12 == (time + 1) % 12) {
-                      cellColor = entry.isStressed ? Colors.red : Colors.green;
-                      foundMatch = true;
-                      break;
-                    }
-                  }
+                    final entryDate = entry.dateTime;
+                    if (entryDate?.day == day) {
+                      final entryTime =
+                          (entryDate!.hour - 7) * 60 + entryDate.minute;
+                      final startTime = time * 120;
+                      final endTime = (time + 1) * 120;
 
-                  if (!foundMatch) {
-                    cellColor = Colors.grey;
+                      if (entryTime >= startTime && entryTime < endTime) {
+                        cellColor =
+                            entry.isStressed ? Colors.red : Colors.green;
+                        break;
+                      }
+                    }
                   }
 
                   return Container(
