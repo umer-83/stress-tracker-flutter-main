@@ -146,20 +146,19 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
                       1;
                   final time = timeIndex - 1;
 
-                  final stressEntry = stressList.firstWhere(
-                    (entry) =>
-                        entry.dateTime?.day == day &&
-                        entry.dateTime!.hour >= time * 2 &&
-                        entry.dateTime!.hour < (time + 1) * 2,
-                    orElse: () =>
-                        StressEntry(dateTime: null, isStressed: false),
-                  );
+                  Color cellColor = Colors.grey;
+                  bool foundMatch = false;
 
-                  Color cellColor;
-                  if (stressEntry.dateTime != null) {
-                    cellColor =
-                        stressEntry.isStressed ? Colors.red : Colors.green;
-                  } else {
+                  for (final entry in stressList) {
+                    if (entry.dateTime?.day == day &&
+                        entry.dateTime!.hour % 12 == (time + 1) % 12) {
+                      cellColor = entry.isStressed ? Colors.red : Colors.green;
+                      foundMatch = true;
+                      break;
+                    }
+                  }
+
+                  if (!foundMatch) {
                     cellColor = Colors.grey;
                   }
 
