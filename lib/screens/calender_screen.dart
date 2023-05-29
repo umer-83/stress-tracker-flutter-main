@@ -21,7 +21,7 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
   final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
 
   Future<void> fetchStressHistory(String userId) async {
-    final url = Uri.parse('http://16.16.96.75:8000/stress/history?_id=$userId');
+    final url = Uri.parse('http://16.16.96.75:8000/stress/history?_id=19');
     final response = await http.get(url);
     final responseData = json.decode(response.body);
 
@@ -103,7 +103,7 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
                 crossAxisSpacing: 4.0,
                 mainAxisSpacing: 4.0,
               ),
-              itemCount: 64, // 8 columns x 8 rows
+              itemCount: 72, // 8 columns x 9 rows
               itemBuilder: (context, index) {
                 final dayIndex = index % 8;
                 final timeIndex = index ~/ 8;
@@ -149,10 +149,9 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
                   for (final entry in stressList) {
                     final entryDate = entry.dateTime;
                     if (entryDate?.day == day) {
-                      final entryTime =
-                          (entryDate!.hour - 7) * 60 + entryDate.minute;
-                      final startTime = time * 120;
-                      final endTime = (time + 1) * 120;
+                      final entryTime = entryDate!.hour * 60 + entryDate.minute;
+                      final startTime = time * 180;
+                      final endTime = (time + 1) * 180;
 
                       if (entryTime >= startTime && entryTime < endTime) {
                         cellColor =
@@ -205,19 +204,21 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
   String getTimeLabel(int index) {
     switch (index) {
       case 0:
-        return '7am-9am';
+        return '12am- 3am';
       case 1:
-        return '9am-11am';
+        return '3am- 6am';
       case 2:
-        return '11am-1pm';
+        return '6am- 9am';
       case 3:
-        return '1pm-3pm';
+        return '9am- 12pm';
       case 4:
-        return '3pm-5pm';
+        return '12pm-3pm';
       case 5:
-        return '5pm-7pm';
+        return '3pm-6pm';
       case 6:
-        return '7pm-9pm';
+        return '6pm- 9pm';
+      case 7:
+        return '9pm- 12am';
       default:
         return '';
     }
