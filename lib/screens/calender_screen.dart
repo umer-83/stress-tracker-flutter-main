@@ -21,7 +21,7 @@ class _StressCalendarScreenState extends State<StressCalendarScreen> {
   final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
 
   Future<void> fetchStressHistory(String userId) async {
-    final url = Uri.parse('http://16.16.96.75:8000/stress/history?_id=19');
+    final url = Uri.parse('http://16.16.96.75:8000/stress/history?_id=$userId');
     final response = await http.get(url);
     final responseData = json.decode(response.body);
 
